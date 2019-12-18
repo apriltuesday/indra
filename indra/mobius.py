@@ -63,3 +63,6 @@ class MobiusTransformation:
         new_rad = abs(new_cen - self._mobius_on_point(C.center + C.radius))
         D = Circle(center=new_cen, radius=new_rad)
         return D
+
+    def __repr__(self):
+        return f'Mobius transformation:\n{str(self.M)}'
