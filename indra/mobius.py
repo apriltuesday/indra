@@ -1,3 +1,5 @@
+from numbers import Number
+
 import numpy as np
 
 from .common import Circle
@@ -30,13 +32,42 @@ class MobiusTransformation:
         # Return inverse transformation
         return MobiusTransformation(self.d, -self.b, -self.c, self.a)
 
+    def fps(self):
+        # Return positive and negative fixed points (may be the same)
+        denom = 2 * self.c
+        if denom == 0:
+            return np.inf
+        diff = self.a - self.d
+        root = np.sqrt(self.M.trace()**2 - 4)
+        return (diff + root) / denom, (diff - root) / denom
+
+    def multiplier(self):
+        tr = self.M.trace()
+        return ((tr + np.sqrt(tr**2 - 4)) / 2)**2
+
+    def sink(self):
+        # Return attracting fixed point (or the only one)
+        pos_fp, neg_fp = self.fps()
+        if pos_fp == neg_fp:
+            return pos_fp
+        k = self.multiplier()
+        return pos_fp if abs(k) > 1 else neg_fp
+
+    def source(self):
+        # Return repelling fixed point (or the only one)
+        pos_fp, neg_fp = self.fps()
+        if pos_fp == neg_fp:
+            return pos_fp
+        k = self.multiplier()
+        return neg_fp if abs(k) > 1 else pos_fp
+
     def __call__(self, other):
         # composition via matrix multiplication
         if isinstance(other, MobiusTransformation):
             return MobiusTransformation(self.M.dot(other.M))
 
         # application to points and circles
-        if isinstance(other, complex):
+        if isinstance(other, Number):
             return self._mobius_on_point(other)
         if isinstance(other, Circle):
             return self._mobius_on_circle(other)
