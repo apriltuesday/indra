@@ -68,13 +68,12 @@ def explore_tree_tiles(X, l, C, level, gens, eps):
             yield from explore_tree_tiles(Y, k, C, level + 1, gens, eps)
 
 
-def plot_limit_points(gens, circs, fps, ax=None, eps=VISUAL_EPS):
+def plot_limit_points(gens, circs, ax=None, eps=VISUAL_EPS):
     """
     Plot limit points of generating set of Mobius transformations.
 
     :param gens: list of generating Mobius transformations
     :param circs: seed circles to start with
-    :param fps: attracting fixed points
     :param ax: optional axis for plotting
     :param eps: minimum radius size to return
     :return: the axis used
@@ -83,22 +82,22 @@ def plot_limit_points(gens, circs, fps, ax=None, eps=VISUAL_EPS):
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect='equal')
 
-    pts = list(dfs_limit(gens, circs, fps, eps=eps))
+    pts = list(dfs_limit_points(gens, circs, eps=eps))
     ax.scatter([x.real for x in pts], [x.imag for x in pts], marker='.', s=10)
 
     return ax
 
 
-def dfs_limit(gens, circs, fps, eps):
+def dfs_limit_points(gens, circs, eps):
     """
     Iterate through limit points with depth-first search.
 
     :param gens: list of generating Mobius transformations
     :param circs: seed circles to start with
-    :param fps: attracting fixed points
     :param eps: minimum radius size to return
     :return: point (complex number)
     """
+    fps = [T.sink() for T in gens]
     for k in range(len(gens)):
         yield from explore_tree_limit(gens[k], k, circs[k], gens, fps, eps)
 

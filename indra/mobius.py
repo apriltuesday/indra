@@ -95,5 +95,8 @@ class MobiusTransformation:
         D = Circle(center=new_cen, radius=new_rad)
         return D
 
+    def __eq__(self, other):
+        return self.M == other.M
+
     def __repr__(self):
         return f'Mobius transformation:\n{str(self.M)}'
