@@ -1,15 +1,11 @@
 import matplotlib.pyplot as plt
 
-from .common import VISUAL_EPS
+from .common import VISUAL_EPS, Line
 
 
 def plot_circle(C, ax, color='k'):
     circ = plt.Circle((C.center.real, C.center.imag), C.radius, color=color)
     ax.add_artist(circ)
-
-
-def plot_line(L, ax, color='k'):
-    pass  # TODO: implement this
 
 
 def plot_tiles(gens, circs, ax=None, plot_level=None, eps=VISUAL_EPS):
@@ -67,6 +63,8 @@ def explore_tree_tiles(X, l, C, level, gens, eps):
     for k in range(l - 1, l + 2):
         Y = X(gens[k % n])
         new_circ = Y(C)
+        if isinstance(new_circ, Line):
+            return
         yield new_circ, level
         if new_circ.radius > eps:
             yield from explore_tree_tiles(Y, k, C, level + 1, gens, eps)

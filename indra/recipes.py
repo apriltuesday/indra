@@ -1,3 +1,4 @@
+from .common import Circle
 from .mobius import MobiusTransformation as Mobius
 
 import numpy as np
@@ -22,6 +23,25 @@ def transform_pairing_circles(C1, C2, u=complex(1, 0), v=complex(0, 0)):
     return Mobius(M)
 
 
-def circles_paired_by_transform(T):
-    """Return circles paired by mobius transformation T (or ??? if not circle-pairing)"""
-    pass
+def kissing_schottky(y, v):
+    """Return generators and circles for symmetric kissing Schottky group"""
+    assert np.isreal(y) and np.isreal(v)
+    x = np.sqrt(1 + y ** 2)
+    u = np.sqrt(1 + v ** 2)
+    yv = y * v
+    k = 1 / yv - np.sqrt(1 / yv ** 2 - 1)
+    assert abs(k) < 1 or np.isclose(abs(k), 1)
+
+    a = Mobius(u, 1j * k * v, -1j * v / k, u)
+    b = Mobius(x, y, y, x)
+    A = a.inv()
+    B = b.inv()
+
+    assert np.isclose(b(a(B(A))).M.trace(), -2)
+
+    C_a = Circle(complex(0, k * u / v), k / v)
+    C_A = Circle(complex(0, -k * u / v), k / v)
+    C_b = Circle(complex(-x / y, 0), 1 / y)
+    C_B = Circle(complex(x / y, 0), 1 / y)
+
+    return [a, b, A, B], [C_a, C_b, C_A, C_B]

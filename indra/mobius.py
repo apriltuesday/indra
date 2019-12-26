@@ -107,11 +107,11 @@ class MobiusTransformation:
     def _apply_to_line(self, L):
         """Apply Mobius transformation to line L"""
         # 3 points on L
-        y_denom = np.sin(L.direction) if L.direction not in {np.pi/2, -np.pi/2} else 1
-        x_denom = np.cos(L.direction) if L.direction not in {0, 2*np.pi} else 1
-        x1, y1 = 0, L.offset / y_denom
-        x2, y2 = L.offset / x_denom, 0
-        x3, y3 = 1, (L.offset - np.cos(L.direction)) / y_denom
+        denom = np.sin(L.direction) if not L.is_horizontal() else 1
+        cosine = np.cos(L.direction)
+        x1, y1 = 0, L.offset / denom
+        x2, y2 = -1, (L.offset + cosine) / denom
+        x3, y3 = 1, (L.offset - cosine) / denom
 
         # 3 points on T(L)
         z1 = self(complex(x1, y1))
@@ -119,6 +119,7 @@ class MobiusTransformation:
         z3 = self(complex(x3, y3))
 
         # solve for circle
+        # TODO: need to tell if this also gives a line...
         w = z3 - z1
         w /= z2 - z1
         c = (z1 - z2) * (w - abs(w) ** 2) / 2j / w.imag - z1
@@ -133,7 +134,7 @@ class MobiusTransformation:
         x2, y2 = z2.real, z2.imag
 
         direction = np.arctan((x2 - x1) / (y1 - y2))
-        offset = np.cos(direction) * x1 + np.sin(direction) * x2
+        offset = np.cos(direction) * x1 + np.sin(direction) * y1
         return Line(direction, offset)
 
     def __eq__(self, other):
