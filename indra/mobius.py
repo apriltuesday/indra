@@ -91,15 +91,19 @@ class MobiusTransformation:
 
     def _apply_to_circle(self, C):
         """Apply Mobius transformation to circle C"""
-        if np.isclose(abs(self.d / self.c + C.center), C.radius):
+        discrim = abs(self.d / self.c + C.center)
+
+        if np.isclose(discrim, C.radius):  # image is a line
             return self._circle_to_line(C)
 
-        z = C.center
-        if self.c != 0:
-            den = (self.d / self.c + C.center).conjugate()
-            if den != 0:
-                z -= C.radius**2 / den
-        new_cen = self._apply_to_point(z)
+        if np.isclose(discrim, 0):  # image is a concentric circle
+            new_cen = C.center
+        else:  # general case
+            z = C.center
+            if self.c != 0:
+                z -= C.radius**2 / (self.d / self.c + C.center).conjugate()
+            new_cen = self._apply_to_point(z)
+
         new_rad = abs(new_cen - self._apply_to_point(C.center + C.radius))
         D = Circle(center=new_cen, radius=new_rad)
         return D

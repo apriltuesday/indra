@@ -1,13 +1,9 @@
 from functools import reduce
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .common import VISUAL_EPS
-
-
-def plot_circle(C, ax, color='k'):
-    circ = plt.Circle((C.center.real, C.center.imag), C.radius, color=color)
-    ax.add_artist(circ)
 
 
 def plot_tiles(gens, circs, ax=None, plot_level=None, eps=VISUAL_EPS):
@@ -26,27 +22,27 @@ def plot_tiles(gens, circs, ax=None, plot_level=None, eps=VISUAL_EPS):
         ax = fig.add_subplot(111, aspect='equal')
 
         ax.set_xlim((
-            max(C.center.real + C.radius for C in circs),
-            min(C.center.real - C.radius for C in circs)
+            min(C.center.real - C.radius for C in circs if np.isfinite(C.radius)),
+            max(C.center.real + C.radius for C in circs if np.isfinite(C.radius))
         ))
         ax.set_ylim((
-            max(C.center.imag + C.radius for C in circs),
-            min(C.center.imag - C.radius for C in circs)
+            min(C.center.imag - C.radius for C in circs if np.isfinite(C.radius)),
+            max(C.center.imag + C.radius for C in circs if np.isfinite(C.radius))
         ))
 
-    colors = plt.cm.get_cmap('viridis', 20)
+    colors = plt.cm.get_cmap('viridis', 20)  # TODO how to set this appropriately?
 
     # sort by level so that they plot in the correct order
-    tiles = sorted(dfs_tiles(gens, circs, eps=eps), key=lambda x: x[1])
-    if plot_level is not None:
-        tiles = [x for x in tiles if x[1] == plot_level]
+    tiles = sorted(dfs_tiles(gens, circs, max_level=plot_level, eps=eps), key=lambda x: x[1])
+    # if plot_level is not None:
+    #     tiles = [x for x in tiles if x[1] == plot_level]
     for C, level in tiles:
-        plot_circle(C, ax, color=colors(level))
+        C.plot(ax, color=colors(level))
 
     return ax
 
 
-def dfs_tiles(gens, circs, eps):
+def dfs_tiles(gens, circs, max_level, eps):
     """
     Iterate through tiles with depth-first search.
 
@@ -57,17 +53,19 @@ def dfs_tiles(gens, circs, eps):
     """
     for k in range(len(gens)):
         yield circs[k], 0
-        yield from explore_tree_tiles(gens[k], k, circs[k], 1, gens, eps)
+        yield from explore_tree_tiles(gens[k], k, circs[k], 1, gens, max_level, eps)
 
 
-def explore_tree_tiles(X, l, C, level, gens, eps):
+def explore_tree_tiles(X, l, C, level, gens, max_level, eps):
+    if max_level is not None and level > max_level:
+        return
     n = len(gens)
     for k in range(l - 1, l + 2):
         Y = X(gens[k % n])
         new_circ = Y(C)
         yield new_circ, level
         if new_circ.radius > eps:
-            yield from explore_tree_tiles(Y, k, C, level + 1, gens, eps)
+            yield from explore_tree_tiles(Y, k, C, level + 1, gens, max_level, eps)
 
 
 def _get_generator_fps(gens):
