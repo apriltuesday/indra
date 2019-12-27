@@ -1,6 +1,8 @@
+from functools import reduce
+
 import matplotlib.pyplot as plt
 
-from .common import VISUAL_EPS, Line
+from .common import VISUAL_EPS
 
 
 def plot_circle(C, ax, color='k'):
@@ -63,11 +65,30 @@ def explore_tree_tiles(X, l, C, level, gens, eps):
     for k in range(l - 1, l + 2):
         Y = X(gens[k % n])
         new_circ = Y(C)
-        if isinstance(new_circ, Line):
-            return
         yield new_circ, level
         if new_circ.radius > eps:
             yield from explore_tree_tiles(Y, k, C, level + 1, gens, eps)
+
+
+def _get_generator_fps(gens):
+    return [T.sink() for T in gens]
+
+
+def _get_commutator_fps(gens):
+    n = len(gens)
+    # will be useful later, for now just used for starting point
+    # beg_pts = [
+    #     reduce(lambda S, T: S(T), (gens[(i + j) % n] for j in range(1, n + 1)))
+    #     for i in range(n)
+    # ]
+    # beg_pts = [T.sink() for T in beg_pts]
+
+    end_pts = [
+        reduce(lambda S, T: S(T), (gens[(i - j) % n] for j in range(1, n + 1)))
+        for i in range(n)
+    ]
+    end_pts = [T.sink() for T in end_pts]
+    return end_pts
 
 
 def plot_limit_points(gens, circs, ax=None, eps=VISUAL_EPS):
@@ -84,22 +105,43 @@ def plot_limit_points(gens, circs, ax=None, eps=VISUAL_EPS):
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect='equal')
 
-    pts = list(dfs_limit_points(gens, circs, eps=eps))
+    pts = list(dfs_limit(gens, circs, fps_fn=_get_generator_fps, eps=eps))
     ax.scatter([x.real for x in pts], [x.imag for x in pts], marker='.', s=10)
 
     return ax
 
 
-def dfs_limit_points(gens, circs, eps):
+def plot_limit_curve(gens, circs, ax=None, eps=VISUAL_EPS):
+    """
+    Plot limit curve of generating set of Mobius transformations.
+
+    :param gens: list of generating Mobius transformations
+    :param circs: seed circles to start with
+    :param ax: optional axis for plotting
+    :param eps: minimum radius size to return
+    :return: the axis used
+    """
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, aspect='equal')
+
+    pts = list(dfs_limit(gens, circs, fps_fn=_get_commutator_fps, eps=eps))
+    ax.plot([x.real for x in pts] + [pts[0].real], [x.imag for x in pts] + [pts[0].imag])
+
+    return ax
+
+
+def dfs_limit(gens, circs, fps_fn, eps):
     """
     Iterate through limit points with depth-first search.
 
     :param gens: list of generating Mobius transformations
     :param circs: seed circles to start with
+    :param fps_fn: function to get fixed points
     :param eps: minimum radius size to return
     :return: point (complex number)
     """
-    fps = [T.sink() for T in gens]
+    fps = fps_fn(gens)
     for k in range(len(gens)):
         yield from explore_tree_limit(gens[k], k, circs[k], gens, fps, eps)
 
@@ -108,7 +150,7 @@ def explore_tree_limit(X, l, C, gens, fps, eps):
     n = len(gens)
     for k in range(l - 1, l + 2):
         Y = X(gens[k % n])
-        if Y(C).radius < eps:
+        if Y(C).radius < eps:  # TODO fix this termination condition
             yield Y(fps[k % n])
         else:
             yield from explore_tree_limit(Y, k, C, gens, fps, eps)
