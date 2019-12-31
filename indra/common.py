@@ -5,6 +5,7 @@ import numpy as np
 
 NUMERIC_EPS = 1e-12
 VISUAL_EPS = 1e-4
+MAX_LEVEL = 1e5
 
 
 class Circle:
