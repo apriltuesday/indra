@@ -6,13 +6,14 @@ import matplotlib.pyplot as plt
 from ..common import VISUAL_EPS, MAX_LEVEL
 
 
-def plot_limit_set(gens, as_curve=True, ax=None, eps=VISUAL_EPS):
+def plot_limit_set(gens, as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL_EPS):
     """
     Plot limit set of a generating set of Mobius transformations.
 
     :param gens: list of generating Mobius transformations
     :param as_curve: whether to plot as a continuous curve (default) or individual points
     :param ax: optional axis for plotting
+    :param max_level: max level to plot
     :param eps: tolerance for termination
     :return: the axis used
     """
@@ -20,7 +21,7 @@ def plot_limit_set(gens, as_curve=True, ax=None, eps=VISUAL_EPS):
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect='equal')
 
-    pts = list(dfs(gens, eps=eps))
+    pts = list(dfs(gens, max_level=max_level, eps=eps))
     if as_curve:
         ax.plot([x.real for x in pts] + [pts[0].real], [x.imag for x in pts] + [pts[0].imag])
     else:
