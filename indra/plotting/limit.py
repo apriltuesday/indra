@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from ..common import VISUAL_EPS, MAX_LEVEL
 
 
-def plot_limit_set(gens, as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL_EPS):
+def plot_limit_set(gens, as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False):
     """
     Plot limit set of a generating set of Mobius transformations.
 
@@ -15,13 +15,14 @@ def plot_limit_set(gens, as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL
     :param ax: optional axis for plotting
     :param max_level: max level to plot
     :param eps: tolerance for termination
+    :param debug: debug prints
     :return: the axis used
     """
     if ax is None:
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect='equal')
 
-    pts = list(dfs(gens, max_level=max_level, eps=eps))
+    pts = list(dfs(gens, max_level=max_level, eps=eps, debug=debug))
     if as_curve:
         ax.plot([x.real for x in pts] + [pts[0].real], [x.imag for x in pts] + [pts[0].imag])
     else:
@@ -47,13 +48,14 @@ def get_commutator_fps(gens):
     return beg_pts[-1], end_pts
 
 
-def dfs(gens, max_level=MAX_LEVEL, eps=VISUAL_EPS):
+def dfs(gens, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False):
     """
     Non-recursive DFS for plotting limit set (only for 4 generators).
 
     :param gens: list of generating Mobius transformations
     :param max_level: max level to plot
     :param eps: tolerance for termination
+    :param debug: debug prints
     :return: complex points to plot
     """
     tags = deque([0])
@@ -77,6 +79,9 @@ def dfs(gens, max_level=MAX_LEVEL, eps=VISUAL_EPS):
 
         # we have a result!
         yield old_pt
+        if debug:
+            print(level)
+            print_current_word(tags)
 
         # go backwards till we have another turn or reach the root
         while True:
@@ -103,10 +108,12 @@ def dfs(gens, max_level=MAX_LEVEL, eps=VISUAL_EPS):
 
 
 def available_turn(last_tag, curr_tag):
+    """Return true if there's another turn to take from curr_tag"""
     return left_of(last_tag) != inverse_of(curr_tag)
 
 
 def branch_termination(T, fp, old_pt, eps, level, max_level):
+    """Return true if we should terminate branch"""
     new_pt = T(fp)
     if level > max_level or abs(new_pt - old_pt) < eps:
         return new_pt, True

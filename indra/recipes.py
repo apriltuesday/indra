@@ -45,3 +45,35 @@ def kissing_schottky(y, v):
     C_B = Circle(complex(x / y, 0), 1 / y)
 
     return [a, b, A, B], [C_a, C_b, C_A, C_B]
+
+
+def parabolic_commutator(t_a, t_b):
+    """Grandma's special parabolic commutator groups"""
+    t_a = complex(t_a)
+    t_b = complex(t_b)
+
+    # positive solution of the Markov identity
+    tatb = t_a * t_b
+    t_ab = (tatb + np.sqrt(tatb ** 2 - 4 * (t_a ** 2 + t_b ** 2))) / 2
+
+    # fixed point of commutator abAB
+    z0 = ((t_ab - 2) * t_b) / (t_b * t_ab - 2 * t_a + 2j * t_ab)
+
+    # generator matrices with the correct traces
+    a = Mobius(
+        t_a / 2,
+        (t_a * t_ab - 2 * t_b + +4j) / (2 * t_ab + 4) * z0,
+        (t_a * t_ab - 2 * t_b - 4j) * z0 / (2 * t_ab - 4),
+        t_a / 2
+    )
+    b = Mobius(
+        (t_b - 2j) / 2,
+        t_b / 2,
+        t_b / 2,
+        (t_b + 2j) / 2
+    )
+
+    A = a.inv()
+    B = b.inv()
+
+    return [a, b, A, B]
