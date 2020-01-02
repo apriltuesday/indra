@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 from ..common import VISUAL_EPS, MAX_LEVEL
 
 
-def plot_limit_set(gens, as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False):
+def plot_limit_set(gens, as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False, **kwargs):
     """
     Plot limit set of a generating set of Mobius transformations.
+    The kwargs are passed on to matplotlib.
 
     :param gens: list of generating Mobius transformations
     :param as_curve: whether to plot as a continuous curve (default) or individual points
@@ -24,9 +25,9 @@ def plot_limit_set(gens, as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL
 
     pts = list(dfs(gens, max_level=max_level, eps=eps, debug=debug))
     if as_curve:
-        ax.plot([x.real for x in pts] + [pts[0].real], [x.imag for x in pts] + [pts[0].imag])
+        ax.plot([x.real for x in pts] + [pts[0].real], [x.imag for x in pts] + [pts[0].imag], **kwargs)
     else:
-        ax.scatter([x.real for x in pts], [x.imag for x in pts], marker='.', s=10)
+        ax.scatter([x.real for x in pts], [x.imag for x in pts], marker='.', s=10, **kwargs)
 
     return ax
 

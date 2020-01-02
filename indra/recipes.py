@@ -47,14 +47,17 @@ def kissing_schottky(y, v):
     return [a, b, A, B], [C_a, C_b, C_A, C_B]
 
 
-def parabolic_commutator(t_a, t_b):
+def parabolic_commutator(t_a, t_b, use_negative=True):
     """Grandma's special parabolic commutator groups"""
     t_a = complex(t_a)
     t_b = complex(t_b)
 
-    # positive solution of the Markov identity
+    # which solution of the Markov identity to use
     tatb = t_a * t_b
-    t_ab = (tatb + np.sqrt(tatb ** 2 - 4 * (t_a ** 2 + t_b ** 2))) / 2
+    if use_negative:
+        t_ab = (tatb - np.sqrt(tatb ** 2 - 4 * (t_a ** 2 + t_b ** 2))) / 2
+    else:
+        t_ab = (tatb + np.sqrt(tatb ** 2 - 4 * (t_a ** 2 + t_b ** 2))) / 2
 
     # fixed point of commutator abAB
     z0 = ((t_ab - 2) * t_b) / (t_b * t_ab - 2 * t_a + 2j * t_ab)
@@ -62,8 +65,8 @@ def parabolic_commutator(t_a, t_b):
     # generator matrices with the correct traces
     a = Mobius(
         t_a / 2,
-        (t_a * t_ab - 2 * t_b + +4j) / (2 * t_ab + 4) * z0,
-        (t_a * t_ab - 2 * t_b - 4j) * z0 / (2 * t_ab - 4),
+        (t_a * t_ab - 2 * t_b + 4j) / ((2 * t_ab + 4) * z0),
+        ((t_a * t_ab - 2 * t_b - 4j) * z0) / (2 * t_ab - 4),
         t_a / 2
     )
     b = Mobius(
@@ -75,5 +78,9 @@ def parabolic_commutator(t_a, t_b):
 
     A = a.inv()
     B = b.inv()
+
+    assert np.isclose(a.M.trace(), t_a)
+    assert np.isclose(b.M.trace(), t_b)
+    assert np.isclose(a(b).M.trace(), t_ab)
 
     return [a, b, A, B]
