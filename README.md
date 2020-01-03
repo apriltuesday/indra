@@ -4,7 +4,7 @@ Projects from the book [Indra's Pearls](http://klein.math.okstate.edu/IndrasPear
 
 ![necklace](images/ch6/necklace-zoom.png)
 
-![spirals](images/ch8/spirals.png)
+![spirals](images/ch8/spirals-zoom.png)
 
 ### To-do's
 
