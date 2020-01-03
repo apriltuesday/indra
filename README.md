@@ -10,4 +10,4 @@ Projects from the book [Indra's Pearls](http://klein.math.okstate.edu/IndrasPear
 
 * plotting stretches of limit set (ch. 6)
 * animation of drawing the limit points and/or tiles
-* gaps in the gasket / special words algorithm (ch. 7 & 8)
+* generalized special words algorithm (ch. 8)

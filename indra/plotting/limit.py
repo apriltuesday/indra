@@ -62,9 +62,7 @@ def dfs(gens, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False):
     tags = deque([0])
     words = deque([gens[0]])
     old_pt, fps = get_commutator_fps(gens)
-
-    level = 0
-    first_time = True  # hack to get it to cycle properly
+    level = 1
 
     while True:
         # go forwards till the end of the branch
@@ -97,9 +95,7 @@ def dfs(gens, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False):
         if level == 0:
             # if we're back to the first generator at the root, we're done!
             if next_tag == 0:
-                if not first_time:  # hack part 2
-                    break
-                first_time = False
+                break
             next_word = gens[next_tag]
         else:
             next_word = words[-1](gens[next_tag])
