@@ -1,11 +1,33 @@
+from functools import reduce
 from numbers import Number
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+# constants
 NUMERIC_EPS = 1e-12
 VISUAL_EPS = 1e-4
 MAX_LEVEL = 1e5
+
+# helpers for going between words, tags, and functions
+char_to_tag = {'a': 0, 'b': 1, 'A': 2, 'B': 3}
+tag_to_char = ['a', 'b', 'A', 'B']
+
+
+def tags_to_word(tags):
+    return ''.join(tag_to_char[t] for t in tags)
+
+
+def word_to_fct(s, gens):
+    return reduce(lambda S, T: S(T), (gens[char_to_tag[c]] for c in s))
+
+
+def tags_to_fct(tags, gens):
+    return reduce(lambda S, T: S(T), (gens[t] for t in tags))
+
+
+def word_to_tags(s):
+    return [char_to_tag[c] for c in s]
 
 
 class Circle:

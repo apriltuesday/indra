@@ -47,17 +47,21 @@ def kissing_schottky(y, v):
     return [a, b, A, B], [C_a, C_b, C_A, C_B]
 
 
+def solve_markov(t_a, t_b, use_negative=True):
+    tatb = t_a * t_b
+    root = np.sqrt(tatb ** 2 - 4 * (t_a ** 2 + t_b ** 2))
+    if use_negative:
+        t_ab = (tatb - root) / 2
+    else:
+        t_ab = (tatb + root) / 2
+    return t_ab
+
+
 def parabolic_commutator(t_a, t_b, use_negative=True):
     """Grandma's special parabolic commutator groups"""
     t_a = complex(t_a)
     t_b = complex(t_b)
-
-    # which solution of the Markov identity to use
-    tatb = t_a * t_b
-    if use_negative:
-        t_ab = (tatb - np.sqrt(tatb ** 2 - 4 * (t_a ** 2 + t_b ** 2))) / 2
-    else:
-        t_ab = (tatb + np.sqrt(tatb ** 2 - 4 * (t_a ** 2 + t_b ** 2))) / 2
+    t_ab = solve_markov(t_a, t_b, use_negative)
 
     # fixed point of commutator abAB
     z0 = ((t_ab - 2) * t_b) / (t_b * t_ab - 2 * t_a + 2j * t_ab)
@@ -82,5 +86,33 @@ def parabolic_commutator(t_a, t_b, use_negative=True):
     assert np.isclose(a.M.trace(), t_a)
     assert np.isclose(b.M.trace(), t_b)
     assert np.isclose(a(b).M.trace(), t_ab)
+
+    return [a, b, A, B]
+
+
+def jorgensen(t_a, t_b, use_negative=True):
+    """Jorgensen's recipe – fixed point of abAB at infinity"""
+    t_a = complex(t_a)
+    t_b = complex(t_b)
+    t_ab = solve_markov(t_a, t_b, use_negative)
+
+    a = Mobius(
+        t_a - t_b / t_ab,
+        t_a / t_ab**2,
+        t_a,
+        t_b / t_ab
+    )
+    b = Mobius(
+        t_b - t_a / t_ab,
+        -t_b / t_ab**2,
+        -t_b, t_a / t_ab
+    )
+
+    A = a.inv()
+    B = b.inv()
+
+    assert np.isclose(np.linalg.det(a.M), 1)
+    assert np.isclose(np.linalg.det(b.M), 1)
+    assert np.isclose(a(b(A(B))).M, np.array([[-1, -2], [0, -1]]))
 
     return [a, b, A, B]
