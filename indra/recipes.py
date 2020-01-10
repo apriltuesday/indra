@@ -113,6 +113,6 @@ def jorgensen(t_a, t_b, use_negative=True):
 
     assert np.isclose(np.linalg.det(a.M), 1)
     assert np.isclose(np.linalg.det(b.M), 1)
-    assert np.isclose(a(b(A(B))).M, np.array([[-1, -2], [0, -1]]))
+    assert np.all(np.isclose(a(b(A(B))).M, np.array([[-1, -2], [0, -1]])))
 
     return [a, b, A, B]

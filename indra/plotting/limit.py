@@ -83,6 +83,8 @@ def dfs(gens, beg_prefix='a', end_prefix='b', max_level=MAX_LEVEL, eps=VISUAL_EP
             tags.append(t)
             words.append(words[-1](gens[t]))
 
+    if debug:
+        print(tags_to_word(tags))
     level = len(tags)
     old_pt, fps = get_commutator_fps(gens)
 
