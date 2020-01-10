@@ -10,4 +10,3 @@ Projects from the book [Indra's Pearls](http://klein.math.okstate.edu/IndrasPear
 
 * animation of changing parameters of recipes
 * generalized special words algorithm (ch. 8)
-* merge `range_dfs` and `special_dfs` methods into the library version

@@ -1,17 +1,20 @@
 from collections import deque
 from functools import reduce
+import itertools
 
 import matplotlib.pyplot as plt
 
-from ..common import VISUAL_EPS, MAX_LEVEL
+from ..common import VISUAL_EPS, MAX_LEVEL, tags_to_word, word_to_tags
 
 
-def plot_limit_set(gens, as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False, **kwargs):
+def plot_limit_set(gens, beg_prefix='a', end_prefix='b', as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False, **kwargs):
     """
     Plot limit set of a generating set of Mobius transformations.
     The kwargs are passed on to matplotlib.
 
     :param gens: list of generating Mobius transformations
+    :param beg_prefix: prefix to start at, as a string (default a)
+    :param end_prefix: prefix to end at, as a string (default b)
     :param as_curve: whether to plot as a continuous curve (default) or individual points
     :param ax: optional axis for plotting
     :param max_level: max level to plot
@@ -23,11 +26,17 @@ def plot_limit_set(gens, as_curve=True, ax=None, max_level=MAX_LEVEL, eps=VISUAL
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect='equal')
 
-    pts = list(dfs(gens, max_level=max_level, eps=eps, debug=debug))
+    pts = list(dfs(gens, beg_prefix, end_prefix, max_level=max_level, eps=eps, debug=debug))
+    xs = [x.real for x in pts]
+    ys = [x.imag for x in pts]
     if as_curve:
-        ax.plot([x.real for x in pts] + [pts[0].real], [x.imag for x in pts] + [pts[0].imag], **kwargs)
+        # connect last to first points, if we're plotting the whole curve
+        if beg_prefix == 'a' and end_prefix == 'b':
+            xs.append(xs[0])
+            ys.append(ys[0])
+        ax.plot(xs, ys, **kwargs)
     else:
-        ax.scatter([x.real for x in pts], [x.imag for x in pts], marker='.', s=10, **kwargs)
+        ax.scatter(xs, ys, marker='.', s=10, **kwargs)
 
     return ax
 
@@ -49,20 +58,33 @@ def get_commutator_fps(gens):
     return beg_pts[-1], end_pts
 
 
-def dfs(gens, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False):
+def dfs(gens, beg_prefix='a', end_prefix='b', max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False):
     """
     Non-recursive DFS for plotting limit set (only for 4 generators).
 
     :param gens: list of generating Mobius transformations
+    :param beg_prefix: prefix to start at, as a string (default a)
+    :param end_prefix: prefix to end at, as a string (default b)
     :param max_level: max level to plot
     :param eps: tolerance for termination
     :param debug: debug prints
     :return: complex points to plot
     """
-    tags = deque([0])
-    words = deque([gens[0]])
+    beg_tags = word_to_tags(beg_prefix)
+    end_tags = word_to_tags(end_prefix)
+    if not precedes_or_equal(beg_tags, end_tags):
+        raise ValueError("beginning prefix must precede end prefix in tree ordering")
+
+    # start with the first word that starts with beg_prefix
+    tags = deque([beg_tags[0]])
+    words = deque([gens[beg_tags[0]]])
+    if len(beg_tags) > 1:
+        for t in beg_tags[1:]:
+            tags.append(t)
+            words.append(words[-1](gens[t]))
+
+    level = len(tags)
     old_pt, fps = get_commutator_fps(gens)
-    level = 1
 
     while True:
         # go forwards till the end of the branch
@@ -80,7 +102,11 @@ def dfs(gens, max_level=MAX_LEVEL, eps=VISUAL_EPS, debug=False):
         yield old_pt
         if debug:
             print(level)
-            print_current_word(tags)
+            print(tags_to_word(tags))
+
+        # stop if we're at the last word starting with end_prefix
+        if starts_with(tags, end_tags) and all_lefts_from(tags, len(end_tags) - 1):
+            break
 
         # go backwards till we have another turn or reach the root
         while True:
@@ -117,13 +143,6 @@ def branch_termination(T, fp, old_pt, eps, level, max_level):
     return old_pt, False
 
 
-def print_current_word(tags):
-    # useful for debugging
-    letters = ['a', 'b', 'A', 'B']
-    s = ''.join(letters[t] for t in tags)
-    print(s)
-
-
 def right_of(tag):
     return (tag + 1) % 4
 
@@ -134,3 +153,39 @@ def left_of(tag):
 
 def inverse_of(tag):
     return (tag + 2) % 4
+
+
+def starts_with(tags, prefix_tags):
+    """Check whether tags starts with a given prefix"""
+    return list(itertools.islice(tags, 0, len(prefix_tags))) == prefix_tags
+
+
+def all_lefts_from(tags, idx):
+    """Check whether tags is all left turns starting from idx"""
+    for i in range(idx, len(tags)-1):
+        if left_of(tags[i]) != tags[i+1]:
+            return False
+    return True
+
+
+def precedes_or_equal(tags_1, tags_2):
+    """Check whether tags_1 precedes tags_2 in the tree ordering (or is equal)"""
+    # ordering is: a, B, A, b <=> 0, 3, 2, 1
+    # to make things easier, we replace 0 with 4
+    first = [x if x != 0 else 4 for x in tags_1]
+    second = [x if x != 0 else 4 for x in tags_2]
+    return recursive_precedes_or_equal(first, second)
+
+
+def recursive_precedes_or_equal(first, second):
+    if first == second or len(first) == 0:
+        return True
+    if len(second) == 0:
+        return False
+    return (
+        first[0] > second[0]
+        or (
+            first[0] == second[0]
+            and recursive_precedes_or_equal(first[1:], second[1:])
+        )
+    )
