@@ -116,3 +116,11 @@ def jorgensen(t_a, t_b, use_negative=True):
     assert np.all(np.isclose(a(b(A(B))).M, np.array([[-1, -2], [0, -1]])))
 
     return [a, b, A, B]
+
+
+def riley(c):
+    """Riley's recipe – two parabolic matrices"""
+    c = complex(c)
+    a = Mobius(1, 0, c, 1)
+    b = Mobius(1, 2, 0, 1)
+    return [a, b, a.inv(), b.inv()]

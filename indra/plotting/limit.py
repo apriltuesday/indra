@@ -26,7 +26,7 @@ def plot_limit_set(gens, beg_prefix='a', end_prefix='b', as_curve=True, ax=None,
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect='equal')
 
-    pts = list(dfs(gens, beg_prefix, end_prefix, max_level=max_level, eps=eps, debug=debug))
+    pts = list(dfs(gens, beg_prefix=beg_prefix, end_prefix=end_prefix, max_level=max_level, eps=eps, debug=debug))
     xs = [x.real for x in pts]
     ys = [x.imag for x in pts]
     if as_curve:

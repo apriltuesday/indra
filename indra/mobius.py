@@ -79,7 +79,7 @@ class MobiusTransformation:
         if isinstance(other, Line):  # technically a special case of circles
             return self._apply_to_line(other)
 
-        raise NotImplementedError('Transformation not supported')
+        raise NotImplementedError(f'Transformation not supported: {other}')
 
     def _apply_to_point(self, z):
         """Apply Mobius transformation to complex number z"""
